@@ -298,6 +298,44 @@ class AzureOpenAIConfig(BaseConfig):
             "westus4",
         ]
 
+    @staticmethod
+    def supports_responses_api(model: str, deployment_region: str) -> bool:
+        """Checks support for Responses API based on Azure documentation:
+        https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses."""
+        # TODO(ColeFrench): Is this the right place to check support?
+        return model in {
+            "azure/gpt-5",
+            "azure/gpt-5-mini",
+            "azure/gpt-5-nano",
+            "azure/gpt-5-chat",
+            "azure/gpt-4o",
+            "azure/gpt-4o-mini",
+            "azure/computer-use-preview",
+            "azure/gpt-4.1",
+            "azure/gpt-4.1-nano",
+            "azure/gpt-4.1-mini",
+            "azure/gpt-image-1",
+            "azure/o1",
+            "azure/o3-mini",
+            "azure/o3",
+            "azure/o4-mini",
+        } and deployment_region in {
+            "australiaeast",
+            "eastus",
+            "eastus2",
+            "francecentral",
+            "japaneast",
+            "norwayeast",
+            "polandcentral",
+            "southindia",
+            "swedencentral",
+            "switzerlandnorth",
+            "uaenorth",
+            "uksouth",
+            "westus",
+            "westus3",
+        }
+
     def get_error_class(self, error_message: str, status_code: int, headers: Union[dict, Headers]) -> BaseLLMException:
         return AzureOpenAIError(message=error_message, status_code=status_code, headers=headers)
 
