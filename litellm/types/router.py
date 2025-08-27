@@ -143,6 +143,9 @@ class CredentialLiteLLMParams(BaseModel):
     api_key: Optional[str] = None
     api_base: Optional[str] = None
     api_version: Optional[str] = None
+    ## AZURE AI FOUNDRY ##
+    azure_deployment_name: Optional[str] = None
+    azure_deployment_region: Optional[str] = None
     ## VERTEX AI ##
     vertex_project: Optional[str] = None
     vertex_location: Optional[str] = None
@@ -224,6 +227,9 @@ class GenericLiteLLMParams(CredentialLiteLLMParams, CustomPricingLiteLLMParams):
         litellm_trace_id: Optional[str] = None,
         ## UNIFIED PROJECT/REGION ##
         region_name: Optional[str] = None,
+        ## AZURE AI FOUNDRY ##
+        azure_deployment_name: Optional[str] = None,
+        azure_deployment_region: Optional[str] = None,
         ## VERTEX AI ##
         vertex_project: Optional[str] = None,
         vertex_location: Optional[str] = None,
@@ -308,6 +314,9 @@ class LiteLLM_Params(GenericLiteLLMParams):
             None  # timeout when making stream=True calls, if str, pass in as os.environ/
         ),
         organization: Optional[str] = None,  # for openai orgs
+        ## AZURE AI FOUNDRY ##
+        azure_deployment_name: Optional[str] = None,
+        azure_deployment_region: Optional[str] = None,
         ## VERTEX AI ##
         vertex_project: Optional[str] = None,
         vertex_location: Optional[str] = None,
@@ -384,6 +393,9 @@ class LiteLLMParamsTypedDict(TypedDict, total=False):
     drop_params: Optional[bool]
     ## UNIFIED PROJECT/REGION ##
     region_name: Optional[str]
+    ## AZURE AI FOUNDRY ##
+    azure_deployment_name: Optional[str]
+    azure_deployment_region: Optional[str]
     ## VERTEX AI ##
     vertex_project: Optional[str]
     vertex_location: Optional[str]

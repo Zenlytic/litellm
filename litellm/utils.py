@@ -3611,7 +3611,11 @@ def _get_model_region(custom_llm_provider: str, litellm_params: LiteLLM_Params) 
     """
     Return the region for a model, for a given provider
     """
-    if custom_llm_provider == "vertex_ai":
+    if custom_llm_provider == "azure":
+        azure_deployment_region = litellm_params.azure_deployment_region
+        if isinstance(azure_deployment_region, str):
+            return azure_deployment_region
+    elif custom_llm_provider == "vertex_ai":
         # check 'vertex_location'
         vertex_ai_location = (
             litellm_params.vertex_location
