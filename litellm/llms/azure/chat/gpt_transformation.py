@@ -300,25 +300,25 @@ class AzureOpenAIConfig(BaseConfig):
 
     @staticmethod
     def supports_responses_api(model: str, deployment_region: str) -> bool:
-        """Checks support for Responses API based on Azure documentation:
+        """Check support for Responses API based on Azure documentation:
         https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses."""
         # TODO(ColeFrench): Is this the right place to check support?
         return model in {
-            "azure/gpt-5",
-            "azure/gpt-5-mini",
-            "azure/gpt-5-nano",
-            "azure/gpt-5-chat",
-            "azure/gpt-4o",
-            "azure/gpt-4o-mini",
-            "azure/computer-use-preview",
-            "azure/gpt-4.1",
-            "azure/gpt-4.1-nano",
-            "azure/gpt-4.1-mini",
-            "azure/gpt-image-1",
-            "azure/o1",
-            "azure/o3-mini",
-            "azure/o3",
-            "azure/o4-mini",
+            "gpt-5",
+            "gpt-5-mini",
+            "gpt-5-nano",
+            "gpt-5-chat",
+            "gpt-4o",
+            "gpt-4o-mini",
+            "computer-use-preview",
+            "gpt-4.1",
+            "gpt-4.1-nano",
+            "gpt-4.1-mini",
+            "gpt-image-1",
+            "o1",
+            "o3-mini",
+            "o3",
+            "o4-mini",
         } and deployment_region in {
             "australiaeast",
             "eastus",

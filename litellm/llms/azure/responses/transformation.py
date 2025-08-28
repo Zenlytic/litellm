@@ -45,10 +45,14 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         headers: dict,
     ) -> Dict:
         """No transform applied since inputs are in OpenAI spec already"""
-        stripped_model_name = self.get_stripped_model_name(model)
+        if litellm_params.azure_deployment_name is not None:
+            model_name = litellm_params.azure_deployment_name
+        else:
+            model_name = self.get_stripped_model_name(model)
+
         return dict(
             ResponsesAPIRequestParams(
-                model=stripped_model_name,
+                model=model_name,
                 input=input,
                 **response_api_optional_request_params,
             )

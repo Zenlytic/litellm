@@ -6356,6 +6356,7 @@ class ProviderConfigManager:
                 model is not None
                 and litellm_params is not None
                 and litellm_params.azure_deployment_region is not None
+                # Only perform the check if we have the arguments necessary for it
                 and not litellm.AzureOpenAIConfig.supports_responses_api(model, litellm_params.azure_deployment_region)
             ):
                 return

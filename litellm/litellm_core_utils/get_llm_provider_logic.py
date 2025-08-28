@@ -6,7 +6,7 @@ import litellm
 from litellm.constants import REPLICATE_MODEL_NAME_WITH_ID_LENGTH
 from litellm.secret_managers.main import get_secret, get_secret_str
 
-from ..types.router import LiteLLM_Params
+from ..types.router import GenericLiteLLMParams
 
 
 def _is_non_openai_azure_model(model: str) -> bool:
@@ -80,7 +80,7 @@ def get_llm_provider(  # noqa: PLR0915
     custom_llm_provider: Optional[str] = None,
     api_base: Optional[str] = None,
     api_key: Optional[str] = None,
-    litellm_params: Optional[LiteLLM_Params] = None,
+    litellm_params: Optional[GenericLiteLLMParams] = None,
 ) -> Tuple[str, str, Optional[str], Optional[str]]:
     """
     Returns the provider for a given model name - e.g. 'azure/chatgpt-v-2' -> 'azure'

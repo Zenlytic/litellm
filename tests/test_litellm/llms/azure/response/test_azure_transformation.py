@@ -293,3 +293,48 @@ class TestAzureResponsesAPIConfig:
             litellm_params={"api_version": None},
         )
         assert result_none_version == expected_url
+
+    def validate_responses_api_request_params(self, params, expected_fields):
+        """
+        Validate that the params dict has the expected structure of ResponsesAPIRequestParams.
+
+        This utility is copied from `TestOpenAIResponsesAPIConfig.validate_responses_api_request_params()`.
+
+        Args:
+            params: The dict to validate
+            expected_fields: Dict of field names and their expected values
+        """
+        # Check that it's a dict
+        assert isinstance(params, dict), "Result should be a dict"
+
+        # Check expected fields have correct values
+        for field, value in expected_fields.items():
+            assert field in params, f"Missing expected field: {field}"
+            assert params[field] == value, f"Field {field} has value {params[field]}, expected {value}"
+
+    def test_azure_transform_responses_api_request(self):
+        """This test is based on `TestOpenAIResponsesAPIConfig.test_azure_transform_responses_api_request()` and
+        additionally tests that the model name gets converted to the deployment name when provided."""
+        input_text = "What is the capital of France?"
+        optional_params = {"temperature": 0.7, "stream": True, "background": True}
+        litellm_params = GenericLiteLLMParams(azure_deployment_name="gpt-4o-deployment")
+
+        result = self.config.transform_responses_api_request(
+            model=self.model,
+            input=input_text,
+            response_api_optional_request_params=optional_params,
+            litellm_params=litellm_params,
+            headers={},
+        )
+
+        # Validate the result has the expected structure and values
+        expected_fields = {
+            # Note new model name is the deployment name
+            "model": litellm_params.azure_deployment_name,
+            "input": input_text,
+            "temperature": 0.7,
+            "stream": True,
+            "background": True,
+        }
+
+        self.validate_responses_api_request_params(result, expected_fields)
