@@ -305,23 +305,26 @@ class AzureOpenAIConfig(BaseConfig):
         """Check support for Responses API based on Azure documentation:
         https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses."""
         # TODO(ColeFrench): Is this the right place to check support?
-        return model in {
-            "gpt-5",
-            "gpt-5-mini",
-            "gpt-5-nano",
-            "gpt-5-chat",
-            "gpt-4o",
-            "gpt-4o-mini",
-            "computer-use-preview",
-            "gpt-4.1",
-            "gpt-4.1-nano",
-            "gpt-4.1-mini",
-            "gpt-image-1",
-            "o1",
-            "o3-mini",
-            "o3",
-            "o4-mini",
-        } and deployment_region in {
+        return any(
+            model.endswith(model_name)
+            for model_name in {
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-chat",
+                "gpt-4o",
+                "gpt-4o-mini",
+                "computer-use-preview",
+                "gpt-4.1",
+                "gpt-4.1-nano",
+                "gpt-4.1-mini",
+                "gpt-image-1",
+                "o1",
+                "o3-mini",
+                "o3",
+                "o4-mini",
+            }
+        ) and deployment_region in {
             "australiaeast",
             "eastus",
             "eastus2",

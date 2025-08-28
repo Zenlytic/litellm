@@ -8,12 +8,41 @@ sys.path.insert(0, os.path.abspath("../../../../.."))  # Adds the parent directo
 
 from unittest.mock import MagicMock
 
+import litellm
 from litellm.llms.azure.responses.o_series_transformation import (
     AzureOpenAIOSeriesResponsesAPIConfig,
 )
 from litellm.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
 from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
 from litellm.types.router import GenericLiteLLMParams
+from litellm.utils import ProviderConfigManager
+
+
+@pytest.mark.parametrize(
+    "model,azure_deployment_name,azure_deployment_region,expected_config_type",
+    [
+        ("gpt-4.1", "gpt-4.1-deployment", "eastus", AzureOpenAIResponsesAPIConfig),
+        ("gpt-4o", "gpt-4o-deployment", "eastus2", AzureOpenAIResponsesAPIConfig),
+        ("gpt-4o", "gpt-4o-deployment", "westus2", type(None)),
+        ("gpt-3.5-turbo", "gpt-3.5-turbo-deployment", "eastus2", type(None)),
+        ("gpt-3.5-turbo", "gpt-3.5-turbo-deployment", "westus2", type(None)),
+        ("gpt-35-turbo", "gpt-35-turbo-deployment", "eastus", type(None)),
+        ("o_series/o4-mini", "o4-mini-deployment", "eastus2", AzureOpenAIOSeriesResponsesAPIConfig),
+        ("o_series/o4-mini", "o4-mini-deployment", "westus2", type(None)),
+        ("gpt5_series/gpt-5", "gpt-5-deployment", "eastus2", AzureOpenAIResponsesAPIConfig),
+        ("gpt5_series/gpt-5", "gpt-5-deployment", "westus2", type(None)),
+    ],
+)
+def test_azure_responses_api_support_for_deployment_params(
+    model, azure_deployment_name, azure_deployment_region, expected_config_type
+):
+    litellm_params = GenericLiteLLMParams(
+        azure_deployment_name=azure_deployment_name, azure_deployment_region=azure_deployment_region
+    )
+    config = ProviderConfigManager.get_provider_responses_api_config(
+        provider=litellm.LlmProviders.AZURE, model=model, litellm_params=litellm_params
+    )
+    assert isinstance(config, expected_config_type)
 
 
 @pytest.mark.serial
@@ -192,9 +221,6 @@ def test_o_series_model_detection():
 @pytest.mark.serial
 def test_provider_config_manager_o_series_selection():
     """Test that ProviderConfigManager returns the correct config for O-series vs regular models."""
-    import litellm
-    from litellm.utils import ProviderConfigManager
-
     # Test O-series model selection
     o_series_config = ProviderConfigManager.get_provider_responses_api_config(
         provider=litellm.LlmProviders.AZURE, model="o_series/gpt-o1"
