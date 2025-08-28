@@ -236,6 +236,8 @@ class AzureOpenAIConfig(BaseConfig):
         litellm_params: dict,
         headers: dict,
     ) -> dict:
+        if litellm_params.get("azure_deployment_name") is not None:
+            model = litellm_params["azure_deployment_name"]
         messages = convert_to_azure_openai_messages(messages)
         return {
             "model": model,

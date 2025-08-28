@@ -4,8 +4,8 @@ import litellm
 from litellm.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
 
 
-@pytest.fixture()
-def config() -> AzureOpenAIGPT5Config:
+@pytest.fixture
+def config():
     return AzureOpenAIGPT5Config()
 
 
@@ -46,3 +46,14 @@ def test_azure_gpt5_series_transform_request(config: AzureOpenAIGPT5Config):
         headers={},
     )
     assert request["model"] == "gpt-5"
+
+
+def test_azure_gpt5_series_transform_request_with_deployment_name(config: AzureOpenAIGPT5Config):
+    request = config.transform_request(
+        model="gpt5_series/gpt-5",
+        messages=[],
+        optional_params={},
+        litellm_params={"azure_deployment_name": "gpt-5-deployment"},
+        headers={},
+    )
+    assert request["model"] == "gpt-5-deployment"
