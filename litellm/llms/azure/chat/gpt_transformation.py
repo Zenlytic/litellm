@@ -255,6 +255,8 @@ class AzureOpenAIConfig(BaseConfig):
         litellm_params: dict,
         headers: dict,
     ) -> dict:
+        if litellm_params.get("azure_deployment_name") is not None:
+            model = litellm_params["azure_deployment_name"]
         messages = convert_to_azure_openai_messages(messages)
         return {
             "model": model,
@@ -281,12 +283,17 @@ class AzureOpenAIConfig(BaseConfig):
         )
 
     def get_mapped_special_auth_params(self) -> dict:
-        return {"token": "azure_ad_token"}
+        return {
+            "project": "azure_deployment_name",
+            "region_name": "azure_deployment_region",
+            "token": "azure_ad_token",
+        }
 
     def map_special_auth_params(self, non_default_params: dict, optional_params: dict):
+        mapped_params = self.get_mapped_special_auth_params()
         for param, value in non_default_params.items():
-            if param == "token":
-                optional_params["azure_ad_token"] = value
+            if param in mapped_params:
+                optional_params[mapped_params[param]] = value
         return optional_params
 
     def get_eu_regions(self) -> List[str]:
@@ -311,6 +318,47 @@ class AzureOpenAIConfig(BaseConfig):
             "westus3",
             "westus4",
         ]
+
+    @staticmethod
+    def supports_responses_api(model: str, deployment_region: str) -> bool:
+        """Check support for Responses API based on Azure documentation:
+        https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses."""
+        # TODO(ColeFrench): Is this the right place to check support?
+        return any(
+            model.endswith(model_name)
+            for model_name in {
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-chat",
+                "gpt-4o",
+                "gpt-4o-mini",
+                "computer-use-preview",
+                "gpt-4.1",
+                "gpt-4.1-nano",
+                "gpt-4.1-mini",
+                "gpt-image-1",
+                "o1",
+                "o3-mini",
+                "o3",
+                "o4-mini",
+            }
+        ) and deployment_region in {
+            "australiaeast",
+            "eastus",
+            "eastus2",
+            "francecentral",
+            "japaneast",
+            "norwayeast",
+            "polandcentral",
+            "southindia",
+            "swedencentral",
+            "switzerlandnorth",
+            "uaenorth",
+            "uksouth",
+            "westus",
+            "westus3",
+        }
 
     def get_error_class(
         self, error_message: str, status_code: int, headers: Union[dict, Headers]

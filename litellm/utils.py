@@ -7,6 +7,8 @@
 #
 #  Thank you users! We ❤️ you! - Krrish & Ishaan
 
+from __future__ import annotations
+
 import ast
 import asyncio
 import base64
@@ -284,6 +286,9 @@ from .types.llms.openai import (
     ChatCompletionToolCallFunctionChunk,
 )
 from .types.router import LiteLLM_Params
+
+if TYPE_CHECKING:
+    from .types.router import GenericLiteLLMParams
 
 ####### ENVIRONMENT VARIABLES ####################
 # Adjust to your specific application needs / system capabilities.
@@ -4197,7 +4202,15 @@ def _get_model_region(
     """
     Return the region for a model, for a given provider
     """
-    if custom_llm_provider == "vertex_ai":
+    if custom_llm_provider == "azure":
+        azure_deployment_region = (
+            litellm_params.azure_deployment_region
+            or litellm.azure_deployment_region
+            or get_secret("AZURE_DEPLOYMENT_REGION")
+        )
+        if isinstance(azure_deployment_region, str):
+            return azure_deployment_region
+    elif custom_llm_provider == "vertex_ai":
         # check 'vertex_location'
         vertex_ai_location = (
             litellm_params.vertex_location
@@ -4513,6 +4526,7 @@ def _strip_openai_finetune_model_name(model_name: str) -> str:
 
 
 def _strip_model_name(model: str, custom_llm_provider: Optional[str]) -> str:
+    # TODO(ColeFrench): Add Azure deployment name support
     if custom_llm_provider and custom_llm_provider in ["bedrock", "bedrock_converse"]:
         stripped_bedrock_model = _get_base_bedrock_model(model_name=model)
         return stripped_bedrock_model
@@ -4579,6 +4593,7 @@ class PotentialModelNamesAndCustomLLMProvider(TypedDict):
 def _get_potential_model_names(
     model: str, custom_llm_provider: Optional[str]
 ) -> PotentialModelNamesAndCustomLLMProvider:
+    # TODO(ColeFrench): Add Azure deployment name support
     if custom_llm_provider is None:
         # Get custom_llm_provider
         try:
@@ -7159,10 +7174,21 @@ class ProviderConfigManager:
     def get_provider_responses_api_config(
         provider: LlmProviders,
         model: Optional[str] = None,
+        litellm_params: Optional[GenericLiteLLMParams] = None,
     ) -> Optional[BaseResponsesAPIConfig]:
         if litellm.LlmProviders.OPENAI == provider:
             return litellm.OpenAIResponsesAPIConfig()
         elif litellm.LlmProviders.AZURE == provider:
+            # TODO(ColeFrench): Add key to supports_factory and check in model info.
+            # But we need access to litellm_params
+            if (
+                model is not None
+                and litellm_params is not None
+                and litellm_params.azure_deployment_region is not None
+                # Only perform the check if we have the arguments necessary for it
+                and not litellm.AzureOpenAIConfig.supports_responses_api(model, litellm_params.azure_deployment_region)
+            ):
+                return
             # Check if it's an O-series model
             if model and ("o_series" in model.lower() or supports_reasoning(model)):
                 return litellm.AzureOpenAIOSeriesResponsesAPIConfig()

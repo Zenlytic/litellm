@@ -116,9 +116,10 @@ class AzureOpenAIO1Config(OpenAIOSeriesConfig):
         litellm_params: dict,
         headers: dict,
     ) -> dict:
-        model = model.replace(
-            "o_series/", ""
-        )  # handle o_series/my-random-deployment-name
+        if litellm_params.get("azure_deployment_name") is not None:
+            model = litellm_params["azure_deployment_name"]
+        else:
+            model = model.replace("o_series/", "")  # handle o_series/my-random-deployment-name
         return super().transform_request(
             model, messages, optional_params, litellm_params, headers
         )

@@ -10,12 +10,41 @@ sys.path.insert(
 
 from unittest.mock import MagicMock
 
+import litellm
 from litellm.llms.azure.responses.o_series_transformation import (
     AzureOpenAIOSeriesResponsesAPIConfig,
 )
 from litellm.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
 from litellm.types.llms.openai import ResponsesAPIOptionalRequestParams
 from litellm.types.router import GenericLiteLLMParams
+from litellm.utils import ProviderConfigManager
+
+
+@pytest.mark.parametrize(
+    "model,azure_deployment_name,azure_deployment_region,expected_config_type",
+    [
+        ("gpt-4.1", "gpt-4.1-deployment", "eastus", AzureOpenAIResponsesAPIConfig),
+        ("gpt-4o", "gpt-4o-deployment", "eastus2", AzureOpenAIResponsesAPIConfig),
+        ("gpt-4o", "gpt-4o-deployment", "westus2", type(None)),
+        ("gpt-3.5-turbo", "gpt-3.5-turbo-deployment", "eastus2", type(None)),
+        ("gpt-3.5-turbo", "gpt-3.5-turbo-deployment", "westus2", type(None)),
+        ("gpt-35-turbo", "gpt-35-turbo-deployment", "eastus", type(None)),
+        ("o_series/o4-mini", "o4-mini-deployment", "eastus2", AzureOpenAIOSeriesResponsesAPIConfig),
+        ("o_series/o4-mini", "o4-mini-deployment", "westus2", type(None)),
+        ("gpt5_series/gpt-5", "gpt-5-deployment", "eastus2", AzureOpenAIResponsesAPIConfig),
+        ("gpt5_series/gpt-5", "gpt-5-deployment", "westus2", type(None)),
+    ],
+)
+def test_azure_responses_api_support_for_deployment_params(
+    model, azure_deployment_name, azure_deployment_region, expected_config_type
+):
+    litellm_params = GenericLiteLLMParams(
+        azure_deployment_name=azure_deployment_name, azure_deployment_region=azure_deployment_region
+    )
+    config = ProviderConfigManager.get_provider_responses_api_config(
+        provider=litellm.LlmProviders.AZURE, model=model, litellm_params=litellm_params
+    )
+    assert isinstance(config, expected_config_type)
 
 
 @pytest.mark.serial
@@ -202,9 +231,6 @@ def test_o_series_model_detection():
 @pytest.mark.serial
 def test_provider_config_manager_o_series_selection():
     """Test that ProviderConfigManager returns the correct config for O-series vs regular models."""
-    import litellm
-    from litellm.utils import ProviderConfigManager
-
     # Test O-series model selection
     o_series_config = ProviderConfigManager.get_provider_responses_api_config(
         provider=litellm.LlmProviders.AZURE, model="o_series/gpt-o1"
@@ -293,3 +319,48 @@ class TestAzureResponsesAPIConfig:
             litellm_params={"api_version": None},
         )
         assert result_none_version == expected_url
+
+    def validate_responses_api_request_params(self, params, expected_fields):
+        """
+        Validate that the params dict has the expected structure of ResponsesAPIRequestParams.
+
+        This utility is copied from `TestOpenAIResponsesAPIConfig.validate_responses_api_request_params()`.
+
+        Args:
+            params: The dict to validate
+            expected_fields: Dict of field names and their expected values
+        """
+        # Check that it's a dict
+        assert isinstance(params, dict), "Result should be a dict"
+
+        # Check expected fields have correct values
+        for field, value in expected_fields.items():
+            assert field in params, f"Missing expected field: {field}"
+            assert params[field] == value, f"Field {field} has value {params[field]}, expected {value}"
+
+    def test_azure_transform_responses_api_request(self):
+        """This test is based on `TestOpenAIResponsesAPIConfig.test_azure_transform_responses_api_request()` and
+        additionally tests that the model name gets converted to the deployment name when provided."""
+        input_text = "What is the capital of France?"
+        optional_params = {"temperature": 0.7, "stream": True, "background": True}
+        litellm_params = GenericLiteLLMParams(azure_deployment_name="gpt-4o-deployment")
+
+        result = self.config.transform_responses_api_request(
+            model=self.model,
+            input=input_text,
+            response_api_optional_request_params=optional_params,
+            litellm_params=litellm_params,
+            headers={},
+        )
+
+        # Validate the result has the expected structure and values
+        expected_fields = {
+            # Note new model name is the deployment name
+            "model": litellm_params.azure_deployment_name,
+            "input": input_text,
+            "temperature": 0.7,
+            "stream": True,
+            "background": True,
+        }
+
+        self.validate_responses_api_request_params(result, expected_fields)

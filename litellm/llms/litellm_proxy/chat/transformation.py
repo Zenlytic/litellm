@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from litellm.constants import OPENAI_CHAT_COMPLETION_PARAMS
 from litellm.secret_managers.main import get_secret_bool, get_secret_str
-from litellm.types.router import LiteLLM_Params
+from litellm.types.router import GenericLiteLLMParams
 
 from ...openai.chat.gpt_transformation import OpenAIGPTConfig
 
@@ -59,7 +59,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
 
     @staticmethod
     def _should_use_litellm_proxy_by_default(
-        litellm_params: Optional[LiteLLM_Params] = None,
+        litellm_params: Optional[GenericLiteLLMParams] = None,
     ):
         """
         Returns True if litellm proxy should be used by default for a given request
