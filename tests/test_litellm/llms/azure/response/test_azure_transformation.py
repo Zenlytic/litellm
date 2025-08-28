@@ -4,7 +4,9 @@ from unittest.mock import patch
 
 import pytest
 
-sys.path.insert(0, os.path.abspath("../../../../.."))  # Adds the parent directory to the system path
+sys.path.insert(
+    0, os.path.abspath("../../../../..")
+)  # Adds the parent directory to the system path
 
 from unittest.mock import MagicMock
 
@@ -50,7 +52,9 @@ def test_validate_environment_api_key_within_litellm_params():
     azure_openai_responses_apiconfig = AzureOpenAIResponsesAPIConfig()
     litellm_params = GenericLiteLLMParams(api_key="test-api-key")
 
-    result = azure_openai_responses_apiconfig.validate_environment(headers={}, model="", litellm_params=litellm_params)
+    result = azure_openai_responses_apiconfig.validate_environment(
+        headers={}, model="", litellm_params=litellm_params
+    )
 
     expected = {"api-key": "test-api-key"}
 
@@ -111,7 +115,9 @@ def test_get_complete_url():
     api_base = "https://litellm8397336933.openai.azure.com"
     litellm_params = {"api_version": "2024-05-01-preview"}
 
-    result = azure_openai_responses_apiconfig.get_complete_url(api_base=api_base, litellm_params=litellm_params)
+    result = azure_openai_responses_apiconfig.get_complete_url(
+        api_base=api_base, litellm_params=litellm_params
+    )
 
     expected = "https://litellm8397336933.openai.azure.com/openai/responses?api-version=2024-05-01-preview"
 
@@ -140,7 +146,9 @@ def test_azure_o_series_responses_api_drop_temperature_param():
     config = AzureOpenAIOSeriesResponsesAPIConfig()
 
     # Create request params with temperature
-    request_params = ResponsesAPIOptionalRequestParams(temperature=0.7, max_output_tokens=1000, stream=False, top_p=0.9)
+    request_params = ResponsesAPIOptionalRequestParams(
+        temperature=0.7, max_output_tokens=1000, stream=False, top_p=0.9
+    )
 
     # Test with drop_params=True
     mapped_params_with_drop = config.map_openai_params(
@@ -174,7 +182,9 @@ def test_azure_o_series_responses_api_drop_params_no_temperature():
     config = AzureOpenAIOSeriesResponsesAPIConfig()
 
     # Create request params without temperature
-    request_params = ResponsesAPIOptionalRequestParams(max_output_tokens=1000, stream=False, top_p=0.9)
+    request_params = ResponsesAPIOptionalRequestParams(
+        max_output_tokens=1000, stream=False, top_p=0.9
+    )
 
     # Should work fine even with drop_params=True
     mapped_params = config.map_openai_params(
@@ -257,21 +267,30 @@ class TestAzureResponsesAPIConfig:
             api_base=base_url,
             litellm_params={"api_version": "preview"},
         )
-        assert result_preview == "https://litellm8397336933.openai.azure.com/openai/v1/responses?api-version=preview"
+        assert (
+            result_preview
+            == "https://litellm8397336933.openai.azure.com/openai/v1/responses?api-version=preview"
+        )
 
         # Test with latest version - should use openai/v1/responses
         result_latest = self.config.get_complete_url(
             api_base=base_url,
             litellm_params={"api_version": "latest"},
         )
-        assert result_latest == "https://litellm8397336933.openai.azure.com/openai/v1/responses?api-version=latest"
+        assert (
+            result_latest
+            == "https://litellm8397336933.openai.azure.com/openai/v1/responses?api-version=latest"
+        )
 
         # Test with date-based version - should use openai/responses
         result_date = self.config.get_complete_url(
             api_base=base_url,
             litellm_params={"api_version": "2025-01-01"},
         )
-        assert result_date == "https://litellm8397336933.openai.azure.com/openai/responses?api-version=2025-01-01"
+        assert (
+            result_date
+            == "https://litellm8397336933.openai.azure.com/openai/responses?api-version=2025-01-01"
+        )
 
     def test_azure_get_complete_url_with_default_api_version(self):
         """Test Azure get_complete_url uses default API version when none is provided"""
